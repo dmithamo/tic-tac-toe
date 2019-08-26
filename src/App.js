@@ -1,13 +1,13 @@
 import React from 'react';
 import Copyright from './components/Copyright';
-import Grid from './components/Grid';
+import Board from './components/Board';
 
 const App = () => (
   <div>
     <header>
       <h1>Tic to the Tac Toe</h1>
       <Copyright />
-      <Grid />
+      <Board />
     </header>
   </div>
 );
