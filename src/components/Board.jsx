@@ -23,34 +23,53 @@ class Board extends Component {
         9: '',
       },
       xToPlay: true,
+      gameOver: false,
     };
 
     this.onClick = this.onClick.bind(this);
   }
 
-  onClick(index) {
-    const { xToPlay } = this.state;
-    const currentValue = this.state.squareValues[index];
-    currentValue === ''
-      ? xToPlay
-        ? this.setState((prevState) => ({
-            ...prevState,
-            squareValues: { ...prevState.squareValues, [index]: 'X' },
-            xToPlay: false,
-          }))
-        : this.setState((prevState) => ({
-            ...prevState,
-            squareValues: { ...prevState.squareValues, [index]: 'O' },
-            xToPlay: true,
-          }))
-      : console.log('You kent play here');
+  async onClick(index) {
+    // Needs to be an async function.
+    // Ensures move is recorded before detectGameOver is called
+    const { gameOver, xToPlay } = this.state;
+    if (!gameOver) {
+      const currentValue = this.state.squareValues[index];
+      await (currentValue === ''
+        ? xToPlay
+          ? this.setState((prevState) => ({
+              ...prevState,
+              squareValues: { ...prevState.squareValues, [index]: 'X' },
+              xToPlay: false,
+            }))
+          : this.setState((prevState) => ({
+              ...prevState,
+              squareValues: { ...prevState.squareValues, [index]: 'O' },
+              xToPlay: true,
+            }))
+        : console.log('You kent play here!'));
+
+      // Check if gameOver
+      this.detectGameOver();
+    } else {
+      console.log('Issover bruh!');
+    }
+  }
+
+  detectGameOver() {
+    // If all boxes are filled (deadlock)
+    let arrayOfSquareValues = Object.values(this.state.squareValues);
+    const gameOver = arrayOfSquareValues.every((val) => val !== '');
+    gameOver && this.setState({ gameOver });
   }
 
   render() {
-    const { squareValues, xToPlay } = this.state;
+    const { squareValues, xToPlay, gameOver } = this.state;
     return (
       <Fragment>
-        <Subheader>{`${xToPlay ? 'X' : 'O'} to play`}</Subheader>
+        <Subheader>{`${
+          !gameOver ? (xToPlay ? 'X to play' : 'O to play') : 'Game over!'
+        }`}</Subheader>
         <Table>
           <tbody>
             <tr>
