@@ -9,7 +9,6 @@ const Container = styled.h2`
   padding: 10px;
   font-size: 12px;
   border-radius: 5px;
-  width: 8%;
   text-align: center;
 `;
 

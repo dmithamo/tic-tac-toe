@@ -1,31 +1,40 @@
 import React, { Component, Fragment } from 'react';
 import styled from 'styled-components';
+import RestartButton from './RestartButton';
+
+const ORIGINAL_STATE = {
+  squareValues: {
+    1: '',
+    2: '',
+    3: '',
+    4: '',
+    5: '',
+    6: '',
+    7: '',
+    8: '',
+    9: '',
+  },
+  xToPlay: true,
+  gameOver: false,
+  winner: 'Draw',
+};
 
 const ClickableSquare = (props) => {
-  const { value } = props;
-  return <StyledSquare onClick={props.onClick}>{value}</StyledSquare>;
+  const { value, gameOver } = props;
+  return (
+    <td>
+      <StyledSquare disabled={gameOver ? true : false} onClick={props.onClick}>
+        {value}
+      </StyledSquare>
+    </td>
+  );
 };
 
 class Board extends Component {
   constructor(props) {
     super(props);
     // Needs to manage state of entire board
-    this.state = {
-      squareValues: {
-        1: '',
-        2: '',
-        3: '',
-        4: '',
-        5: '',
-        6: '',
-        7: '',
-        8: '',
-        9: '',
-      },
-      xToPlay: true,
-      gameOver: false,
-      winner: 'Draw',
-    };
+    this.state = { ...ORIGINAL_STATE };
   }
 
   async onClick(index) {
@@ -102,6 +111,11 @@ class Board extends Component {
       this.setState({ gameOver, winner: player === 'X' ? 'X won' : 'O won' });
   }
 
+  async resetGame() {
+    //Restore original state
+    await this.setState({ ...ORIGINAL_STATE });
+  }
+
   render() {
     const { squareValues, xToPlay, gameOver, winner } = this.state;
     return (
@@ -119,52 +133,65 @@ class Board extends Component {
               <ClickableSquare
                 onClick={() => this.onClick(1)}
                 value={squareValues[1]}
+                gameOver={gameOver}
               />
               <ClickableSquare
                 onClick={() => this.onClick(2)}
                 value={squareValues[2]}
+                gameOver={gameOver}
               />
               <ClickableSquare
                 onClick={() => this.onClick(3)}
                 value={squareValues[3]}
+                gameOver={gameOver}
               />
             </tr>
             <tr>
               <ClickableSquare
                 onClick={() => this.onClick(4)}
                 value={squareValues[4]}
+                gameOver={gameOver}
               />
               <ClickableSquare
                 onClick={() => this.onClick(5)}
                 value={squareValues[5]}
+                gameOver={gameOver}
               />
               <ClickableSquare
                 onClick={() => this.onClick(6)}
                 value={squareValues[6]}
+                gameOver={gameOver}
               />
             </tr>
             <tr>
               <ClickableSquare
                 onClick={() => this.onClick(7)}
                 value={squareValues[7]}
+                gameOver={gameOver}
               />
               <ClickableSquare
                 onClick={() => this.onClick(8)}
                 value={squareValues[8]}
+                gameOver={gameOver}
               />
               <ClickableSquare
                 onClick={() => this.onClick(9)}
                 value={squareValues[9]}
+                gameOver={gameOver}
               />
             </tr>
           </tbody>
         </Table>
+        <RestartButton
+          disabled={gameOver ? false : true}
+          onClick={() => this.resetGame()}
+        />
       </Fragment>
     );
   }
 }
 
-const StyledSquare = styled.td`
+const StyledSquare = styled.button`
   color: black;
   font-family: monospace;
   font-weight: bold;
@@ -173,9 +200,9 @@ const StyledSquare = styled.td`
   text-align: center;
   width: 100px;
   height: 100px;
-  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
   border: 1px solid black;
-  border-collapse: collapse;
+  outline: none;
 `;
 
 const Table = styled.table`
