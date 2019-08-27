@@ -24,9 +24,8 @@ class Board extends Component {
       },
       xToPlay: true,
       gameOver: false,
+      winner: 'Draw',
     };
-
-    this.onClick = this.onClick.bind(this);
   }
 
   async onClick(index) {
@@ -61,14 +60,58 @@ class Board extends Component {
     let arrayOfSquareValues = Object.values(this.state.squareValues);
     const gameOver = arrayOfSquareValues.every((val) => val !== '');
     gameOver && this.setState({ gameOver });
+
+    //Also check if someone won
+    this.checkWinner('X');
+    this.checkWinner('O');
+  }
+
+  checkWinner(player) {
+    const { squareValues } = this.state;
+    // Rows
+    const rowOneVals = [squareValues[1], squareValues[2], squareValues[3]];
+    const rowTwoVals = [squareValues[4], squareValues[5], squareValues[6]];
+    const rowThreeVals = [squareValues[7], squareValues[8], squareValues[9]];
+    // Columns
+    const colOneVals = [squareValues[1], squareValues[4], squareValues[7]];
+    const colTwoVals = [squareValues[2], squareValues[5], squareValues[8]];
+    const colThreeVals = [squareValues[3], squareValues[6], squareValues[9]];
+
+    // Diagonals
+    const diagOne = [squareValues[1], squareValues[5], squareValues[9]];
+    const diagTwo = [squareValues[3], squareValues[5], squareValues[7]];
+
+    // Run each line thro the win checking test
+    for (let line of [
+      rowOneVals,
+      rowTwoVals,
+      rowThreeVals,
+      colOneVals,
+      colTwoVals,
+      colThreeVals,
+      diagOne,
+      diagTwo,
+    ]) {
+      this.checkEachLineForWin(line, player);
+    }
+  }
+
+  checkEachLineForWin(line, player) {
+    const gameOver = line.every((val) => val === player);
+    gameOver &&
+      this.setState({ gameOver, winner: player === 'X' ? 'X won' : 'O won' });
   }
 
   render() {
-    const { squareValues, xToPlay, gameOver } = this.state;
+    const { squareValues, xToPlay, gameOver, winner } = this.state;
     return (
       <Fragment>
         <Subheader>{`${
-          !gameOver ? (xToPlay ? 'X to play' : 'O to play') : 'Game over!'
+          !gameOver
+            ? xToPlay
+              ? 'X to play'
+              : 'O to play'
+            : `Game over! ${winner}`
         }`}</Subheader>
         <Table>
           <tbody>
