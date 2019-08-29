@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React, { useState, Fragment } from 'react';
 import styled from 'styled-components';
 import RestartButton from './RestartButton';
 
@@ -21,62 +21,73 @@ const ORIGINAL_STATE = {
 
 const ClickableSquare = (props) => {
   const { value, gameOver } = props;
+
+  // useState to manage the square's color
+  const [squareBG, setSquareBG] = useState('white');
+
+  const handleMouseEnter = () => {
+    setSquareBG('#DCDCDC70');
+  };
+
+  const handleMouseLeave = () => {
+    setSquareBG('white');
+  };
+
   return (
     <td>
-      <StyledSquare disabled={gameOver ? true : false} onClick={props.onClick}>
+      <StyledSquare
+        squareBG={squareBG}
+        setSquareBG={setSquareBG}
+        disabled={gameOver || value !== '' ? true : false}
+        onClick={props.onClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         {value}
       </StyledSquare>
     </td>
   );
 };
 
-class Board extends Component {
-  constructor(props) {
-    super(props);
-    // Needs to manage state of entire board
-    this.state = { ...ORIGINAL_STATE };
-  }
+function Board() {
+  // Needs to manage state of entire board
+  const [state, setState] = useState(ORIGINAL_STATE);
 
-  async onClick(index) {
-    // Needs to be an async function.
-    // Ensures move is recorded before detectGameOver is called
-    const { gameOver, xToPlay } = this.state;
+  const onClick = (index) => {
+    const { gameOver } = state;
     if (!gameOver) {
-      const currentValue = this.state.squareValues[index];
-      await (currentValue === ''
-        ? xToPlay
-          ? this.setState((prevState) => ({
-              ...prevState,
-              squareValues: { ...prevState.squareValues, [index]: 'X' },
-              xToPlay: false,
-            }))
-          : this.setState((prevState) => ({
-              ...prevState,
-              squareValues: { ...prevState.squareValues, [index]: 'O' },
-              xToPlay: true,
-            }))
-        : console.log('You kent play here!'));
-
-      // Check if gameOver
-      this.detectGameOver();
-    } else {
-      console.log('Issover bruh!');
+      markMove(index);
+      detectGameOver();
     }
-  }
+  };
 
-  detectGameOver() {
+  const markMove = (index) => {
+    xToPlay
+      ? setState({
+          ...state,
+          squareValues: { ...state.squareValues, [index]: 'X' },
+          xToPlay: false,
+        })
+      : setState({
+          ...state,
+          squareValues: { ...state.squareValues, [index]: 'O' },
+          xToPlay: true,
+        });
+  };
+
+  const detectGameOver = () => {
     // If all boxes are filled (deadlock)
-    let arrayOfSquareValues = Object.values(this.state.squareValues);
+    let arrayOfSquareValues = Object.values(state.squareValues);
     const gameOver = arrayOfSquareValues.every((val) => val !== '');
-    gameOver && this.setState({ gameOver });
+    gameOver && setState({ ...state, gameOver });
 
     //Also check if someone won
-    this.checkWinner('X');
-    this.checkWinner('O');
-  }
+    checkWinner('X');
+    checkWinner('O');
+  };
 
-  checkWinner(player) {
-    const { squareValues } = this.state;
+  const checkWinner = (player) => {
+    const { squareValues } = state;
     // Rows
     const rowOneVals = [squareValues[1], squareValues[2], squareValues[3]];
     const rowTwoVals = [squareValues[4], squareValues[5], squareValues[6]];
@@ -101,98 +112,101 @@ class Board extends Component {
       diagOne,
       diagTwo,
     ]) {
-      this.checkEachLineForWin(line, player);
+      checkEachLineForWin(line, player);
     }
-  }
+  };
 
-  checkEachLineForWin(line, player) {
+  const checkEachLineForWin = (line, player) => {
     const gameOver = line.every((val) => val === player);
     gameOver &&
-      this.setState({ gameOver, winner: player === 'X' ? 'X won' : 'O won' });
-  }
+      setState({
+        ...state,
+        gameOver,
+        winner: player === 'X' ? 'X won' : 'O won',
+      });
+  };
 
-  async resetGame() {
+  const resetGame = () => {
     //Restore original state
-    await this.setState({ ...ORIGINAL_STATE });
-  }
+    setState(ORIGINAL_STATE);
+  };
 
-  render() {
-    const { squareValues, xToPlay, gameOver, winner } = this.state;
-    return (
-      <Fragment>
-        <Subheader>{`${
-          !gameOver
-            ? xToPlay
-              ? 'X to play'
-              : 'O to play'
-            : `Game over! ${winner}`
-        }`}</Subheader>
-        <Table>
-          <tbody>
-            <tr>
-              <ClickableSquare
-                onClick={() => this.onClick(1)}
-                value={squareValues[1]}
-                gameOver={gameOver}
-              />
-              <ClickableSquare
-                onClick={() => this.onClick(2)}
-                value={squareValues[2]}
-                gameOver={gameOver}
-              />
-              <ClickableSquare
-                onClick={() => this.onClick(3)}
-                value={squareValues[3]}
-                gameOver={gameOver}
-              />
-            </tr>
-            <tr>
-              <ClickableSquare
-                onClick={() => this.onClick(4)}
-                value={squareValues[4]}
-                gameOver={gameOver}
-              />
-              <ClickableSquare
-                onClick={() => this.onClick(5)}
-                value={squareValues[5]}
-                gameOver={gameOver}
-              />
-              <ClickableSquare
-                onClick={() => this.onClick(6)}
-                value={squareValues[6]}
-                gameOver={gameOver}
-              />
-            </tr>
-            <tr>
-              <ClickableSquare
-                onClick={() => this.onClick(7)}
-                value={squareValues[7]}
-                gameOver={gameOver}
-              />
-              <ClickableSquare
-                onClick={() => this.onClick(8)}
-                value={squareValues[8]}
-                gameOver={gameOver}
-              />
-              <ClickableSquare
-                onClick={() => this.onClick(9)}
-                value={squareValues[9]}
-                gameOver={gameOver}
-              />
-            </tr>
-          </tbody>
-        </Table>
-        <RestartButton
-          disabled={gameOver ? false : true}
-          onClick={() => this.resetGame()}
-        />
-      </Fragment>
-    );
-  }
+  const { squareValues, xToPlay, gameOver, winner } = state;
+  return (
+    <Fragment>
+      <Subheader>{`${
+        !gameOver
+          ? xToPlay
+            ? 'X to play'
+            : 'O to play'
+          : `Game over! ${winner}`
+      }`}</Subheader>
+      <Table>
+        <tbody>
+          <tr>
+            <ClickableSquare
+              onClick={() => onClick(1)}
+              value={squareValues[1]}
+              gameOver={gameOver}
+            />
+            <ClickableSquare
+              onClick={() => onClick(2)}
+              value={squareValues[2]}
+              gameOver={gameOver}
+            />
+            <ClickableSquare
+              onClick={() => onClick(3)}
+              value={squareValues[3]}
+              gameOver={gameOver}
+            />
+          </tr>
+          <tr>
+            <ClickableSquare
+              onClick={() => onClick(4)}
+              value={squareValues[4]}
+              gameOver={gameOver}
+            />
+            <ClickableSquare
+              onClick={() => onClick(5)}
+              value={squareValues[5]}
+              gameOver={gameOver}
+            />
+            <ClickableSquare
+              onClick={() => onClick(6)}
+              value={squareValues[6]}
+              gameOver={gameOver}
+            />
+          </tr>
+          <tr>
+            <ClickableSquare
+              onClick={() => onClick(7)}
+              value={squareValues[7]}
+              gameOver={gameOver}
+            />
+            <ClickableSquare
+              onClick={() => onClick(8)}
+              value={squareValues[8]}
+              gameOver={gameOver}
+            />
+            <ClickableSquare
+              onClick={() => onClick(9)}
+              value={squareValues[9]}
+              gameOver={gameOver}
+            />
+          </tr>
+        </tbody>
+      </Table>
+      <RestartButton
+        disabled={gameOver ? false : true}
+        onClick={() => resetGame()}
+      />
+    </Fragment>
+  );
 }
 
 const StyledSquare = styled.button`
   color: black;
+  background-color: ${(props) => props.squareBG};
   font-family: monospace;
   font-weight: bold;
   font-size: 80px;

@@ -8,13 +8,14 @@ const App = () => (
     <header>
       <h1>Tic to the Tac Toe</h1>
       <Copyright />
-      <Board />
     </header>
+    <Board />
   </Container>
 );
 
 const Container = styled.div`
   display: flex;
+  flex-direction: column;
   width: 50%;
   align-items: center;
   margin: auto;
